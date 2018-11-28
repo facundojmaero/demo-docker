@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  frontend-react:
+    build: frontend-awesome-searchbar
+    image: frontend-react
+    volumes:
+      - ./frontend-awesome-searchbar:/frontend
+    ports:
+      - "3000:3000"
+    links:
+      - backend-django
+  backend-django:
+    build: backend-awesome-searchbar
+    image: backend-django
+    volumes:
+      - ./backend-awesome-searchbar:/backend
+    ports:
+      - "8000:8000"
+    links: 
+      - rabbitmq
+  rabbitmq:
+    image: rabbitmq:3-management
+  nameko:
+    build: backend-nameko
+    image: nameko
+    volumes:
+      - ./backend-nameko:/backend
+    depends_on:
+      - rabbitmq
+    command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "nameko", "run", "nameko-server", "--broker", "amqp://guest:guest@rabbitmq"]
